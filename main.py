@@ -154,8 +154,8 @@ def search_satellite_imagery():
 
     api_url = "https://earth-search.aws.element84.com/v1"
     client = Client.open(api_url)
-
-   point = Point(lon, lat)
+    
+    point = Point(lon, lat)
 
     search = client.search(
         collections=["sentinel-2-l2a"],
