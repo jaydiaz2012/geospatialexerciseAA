@@ -165,3 +165,5 @@ if trigger_search:
 if st.button("Run search manually"):
     with st.spinner("Searching Sentinel-2 imagery..."):
         search_satellite_imagery()
+
+st.session_state_last_search_time
