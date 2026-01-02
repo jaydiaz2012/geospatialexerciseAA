@@ -1,0 +1,6 @@
+streamlit
+pystac-client
+shapely
+requests
+streamlit-folium
+folium
