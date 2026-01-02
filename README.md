@@ -64,6 +64,7 @@ Clone the repository:
 ```bash
 git clone https://github.com/your-username/sentinel2-streamlit-explorer.git
 cd sentinel2-streamlit-explorer
+```
 
 ## 🔒 Limitations
 
