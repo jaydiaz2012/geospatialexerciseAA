@@ -95,11 +95,10 @@ if map_data and map_data.get("last_clicked"):
         st.success(
             f"Selected coordinates: "
             f"{st.session_state.lat:.6f}, {st.session_state.lon:.6f}"
+        )
 
         st.session_state.lat = clamp_latitude(st.session_state.lat)
         st.session_state.lon = normalise_longitude(st.session_state.lon)
-
-        )
 
 lat = st.number_input(
     "Latitude",
