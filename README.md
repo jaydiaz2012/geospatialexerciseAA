@@ -65,6 +65,27 @@ Clone the repository:
 git clone https://github.com/your-username/sentinel2-streamlit-explorer.git
 cd sentinel2-streamlit-explorer
 ```
+## 🗺️ Usage Guide
+
+Open the app
+
+Use the map to zoom and pan
+
+Click on any location
+
+Sentinel-2 imagery is fetched automatically
+
+Review the satellite image output
+
+## 🧪 Coordinate Validation Logic
+
+Latitude values outside ±90° are clamped
+
+Longitude values outside ±180° are normalised
+
+Only corrected inputs are logged
+
+Valid clicks remain silent to preserve UX
 
 ## 🔒 Limitations
 
