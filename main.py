@@ -16,6 +16,19 @@ st.set_page_config(
 
 st.title("Sentinel-2 Satellite Imagery Finder")
 
+def normalise_longitude(lon: float) -> float:
+    """
+    Normalise longitude to [-180, 180]
+    """
+    return ((lon + 180) % 360) - 180
+
+
+def clamp_latitude(lat: float) -> float:
+    """
+    Clamp latitude to [-90, 90]
+    """
+    return max(min(lat, 90), -90)
+    
 # --------------------------------------------------
 # Initialise session state (SINGLE SOURCE OF TRUTH)
 # --------------------------------------------------
@@ -71,8 +84,8 @@ if map_data and map_data.get("last_clicked"):
 
     if st.session_state.last_click != click:
         st.session_state.last_click = click
-        st.session_state.lat = click["lat"]
-        st.session_state.lon = click["lng"]
+        st.session_state.lat = clamp_latitude (click["lat"])
+        st.session_state.lon = normalise_longitude(click["lng"])
 
         now = time.time()
         if now - st.session_state.last_search_time > SEARCH_COOLDOWN:
@@ -82,7 +95,27 @@ if map_data and map_data.get("last_clicked"):
         st.success(
             f"Selected coordinates: "
             f"{st.session_state.lat:.6f}, {st.session_state.lon:.6f}"
+
+        st.session_state.lat = clamp_latitude(st.session_state.lat)
+        st.session_state.lon = normalise_longitude(st.session_state.lon)
+
         )
+
+lat = st.number_input(
+    "Latitude",
+    min_value=-90.0,
+    max_value=90.0,
+    value=st.session_state.lat,
+    format="%.6f"
+)
+
+lon = st.number_input(
+    "Longitude",
+    min_value=-180.0,
+    max_value=180.0,
+    value=st.session_state.lon,
+    format="%.6f"
+)
 
 # --------------------------------------------------
 # Controls
@@ -117,10 +150,13 @@ def search_satellite_imagery():
         f"Date range: {st.session_state.start_date} to {st.session_state.end_date}"
     )
 
+    lat = clamp_latitude(st.session_state.lat)
+    lon = normalise_longitude(st.session_state.lon)
+
     api_url = "https://earth-search.aws.element84.com/v1"
     client = Client.open(api_url)
 
-    point = Point(st.session_state.lon, st.session_state.lat)
+   point = Point(lon, lat)
 
     search = client.search(
         collections=["sentinel-2-l2a"],
@@ -152,6 +188,11 @@ def search_satellite_imagery():
             caption="Sentinel-2 thumbnail"
         )
 
+st.info(
+    f"Searching at "
+    f"Lat {lat:.6f}, Lon {lon:.6f} (normalised)"
+)
+
 # --------------------------------------------------
 # AUTO-RUN SEARCH (SAFE + RATE-LIMITED)
 # --------------------------------------------------
@@ -165,5 +206,3 @@ if trigger_search:
 if st.button("Run search manually"):
     with st.spinner("Searching Sentinel-2 imagery..."):
         search_satellite_imagery()
-
-st.session_state.last_search_time
