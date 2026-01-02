@@ -155,7 +155,7 @@ def search_satellite_imagery():
     point = Point( st.session_state.lon, st.session_state.lat)
 
     search = client.search(
-        collections=["landsat-c2-l2"],
+        collections=["sentinel-2-l2a"],
         intersects=point.__geo_interface__,
         datetime=f"{st.session_state.start_date}/{st.session_state.end_date}",
         query={"eo:cloud_cover": {"lt": 15}}
@@ -181,7 +181,7 @@ def search_satellite_imagery():
     if "thumbnail" in best_item.assets:
         st.image(
             best_item.assets["thumbnail"].href,
-            caption="landsat-c2-l2 thumbnail"
+            caption="Sentinel Thumbnail"
         )
 
 st.info(
