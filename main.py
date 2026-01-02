@@ -33,9 +33,9 @@ def clamp_latitude(lat: float) -> float:
 # Initialise session state (SINGLE SOURCE OF TRUTH)
 # --------------------------------------------------
 if "lat" not in st.session_state:
-    st.session_state.lat = 37.8199
-    st.session_state.lon = -122.4783
-
+    st.session_state.lat = 16.412538689090894
+    st.session_state.lon = 120.59368070367955
+    
 if "start_date" not in st.session_state:
     st.session_state.start_date = datetime.date(2025, 12, 1)
 
