@@ -63,4 +63,37 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/your-username/sentinel2-streamlit-explorer.git
-cd sentinel2-streamlit-explorer
+cd sentinel2-streamlit-explorer```
+
+🔒 Limitations
+
+Imagery availability depends on Sentinel-2 coverage and cloud conditions
+
+No image processing (NDVI, band maths) included by default
+
+Session logs are not persisted across users or restarts
+
+🔮 Possible Enhancements
+
+NDVI or vegetation index computation
+
+Date range selection
+
+Cloud cover filtering
+
+Export imagery metadata
+
+Persistent logging or analytics dashboard
+
+Multi-tile mosaic stitching
+
+📜 Licence
+
+MIT Licence.
+Free to use, modify, and distribute.
+
+✨ Acknowledgements
+
+Copernicus Sentinel-2 Programme
+
+STAC community for open geospatial standards
