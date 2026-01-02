@@ -148,14 +148,11 @@ def search_satellite_imagery():
     st.write(
         f"Date range: {st.session_state.start_date} to {st.session_state.end_date}"
     )
-
-    lat = clamp_latitude(st.session_state.lat)
-    lon = normalise_longitude(st.session_state.lon)
-
+    
     api_url = "https://earth-search.aws.element84.com/v1"
     client = Client.open(api_url)
     
-    point = Point(lon, lat)
+    point = Point( st.session_state.lon, st.session_state.lat)
 
     search = client.search(
         collections=["sentinel-2-l2a"],
