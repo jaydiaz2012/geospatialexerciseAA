@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import time
 from pystac_client import Client
 from shapely.geometry import Point
 import folium
@@ -14,23 +15,31 @@ st.set_page_config(
 )
 
 st.title("Sentinel-2 Satellite Imagery Finder")
-st.markdown(
-    "Satellite images appear below once the selected location and dates "
-    "match available Sentinel-2 acquisitions."
-)
 
 # --------------------------------------------------
-# Initialise session state FIRST (critical)
+# Initialise session state (SINGLE SOURCE OF TRUTH)
 # --------------------------------------------------
 if "lat" not in st.session_state:
     st.session_state.lat = 37.8199
     st.session_state.lon = -122.4783
 
-if "auto_search" not in st.session_state:
-    st.session_state.auto_search = False
+if "start_date" not in st.session_state:
+    st.session_state.start_date = datetime.date(2025, 12, 1)
+
+if "end_date" not in st.session_state:
+    st.session_state.end_date = datetime.date(2025, 12, 31)
+
+if "location_name" not in st.session_state:
+    st.session_state.location_name = "Selected location"
 
 if "last_click" not in st.session_state:
     st.session_state.last_click = None
+
+if "last_search_time" not in st.session_state:
+    st.session_state.last_search_time = 0
+
+# Rate-limit in seconds
+SEARCH_COOLDOWN = 5
 
 # --------------------------------------------------
 # Map selector
@@ -50,70 +59,73 @@ folium.Marker(
     tooltip="Selected location"
 ).add_to(m)
 
-map_data = st_folium(
-    m,
-    height=450,
-    width=700
-)
+map_data = st_folium(m, height=450, width=700)
 
-# Update session state on map click
+# --------------------------------------------------
+# Handle map click → auto search trigger
+# --------------------------------------------------
+trigger_search = False
+
 if map_data and map_data.get("last_clicked"):
     click = map_data["last_clicked"]
 
-    # Detect a NEW click only
     if st.session_state.last_click != click:
         st.session_state.last_click = click
         st.session_state.lat = click["lat"]
         st.session_state.lon = click["lng"]
 
-        # Trigger auto search
-        st.session_state.auto_search = True
+        now = time.time()
+        if now - st.session_state.last_search_time > SEARCH_COOLDOWN:
+            trigger_search = True
+            st.session_state.last_search_time = now
 
         st.success(
             f"Selected coordinates: "
             f"{st.session_state.lat:.6f}, {st.session_state.lon:.6f}"
         )
-# --------------------------------------------------
-# Coordinate inputs (synced with map)
-# --------------------------------------------------
-st.subheader("Fine-tune coordinates")
 
-lat = st.number_input(
-    "Latitude",
-    value=st.session_state.lat,
-    format="%.6f",
-    key="lat_input"
+# --------------------------------------------------
+# Controls
+# --------------------------------------------------
+st.subheader("Search parameters")
+
+st.session_state.location_name = st.text_input(
+    "Location name",
+    value=st.session_state.location_name
 )
 
-lon = st.number_input(
-    "Longitude",
-    value=st.session_state.lon,
-    format="%.6f",
-    key="lon_input"
+st.session_state.start_date = st.date_input(
+    "Start date",
+    value=st.session_state.start_date
 )
 
-# Keep session state in sync with manual edits
-st.session_state.lat = lat
-st.session_state.lon = lon
+st.session_state.end_date = st.date_input(
+    "End date",
+    value=st.session_state.end_date
+)
 
 # --------------------------------------------------
 # Satellite search function
 # --------------------------------------------------
-def search_satellite_imagery(lat, lon, start_date, end_date, location_name):
-    st.subheader(f"Searching imagery for {location_name}")
+def search_satellite_imagery():
+    st.subheader(f"Searching imagery for {st.session_state.location_name}")
 
-    st.write(f"Coordinates: {lat}, {lon}")
-    st.write(f"Date range: {start_date} to {end_date}")
+    st.write(
+        f"Coordinates: {st.session_state.lat}, {st.session_state.lon}"
+    )
+    st.write(
+        f"Date range: {st.session_state.start_date} to {st.session_state.end_date}"
+    )
 
     api_url = "https://earth-search.aws.element84.com/v1"
     client = Client.open(api_url)
 
-    point = Point(lon, lat)
+    point = Point(st.session_state.lon, st.session_state.lat)
 
     search = client.search(
         collections=["sentinel-2-l2a"],
         intersects=point.__geo_interface__,
-        datetime=f"{start_date}/{end_date}",
+        datetime=f"{st.session_state.start_date}/{st.session_state.end_date}",
         query={"eo:cloud_cover": {"lt": 15}}
     )
 
@@ -121,8 +133,8 @@ def search_satellite_imagery(lat, lon, start_date, end_date, location_name):
     st.write(f"Found {len(items)} matching scenes")
 
     if not items:
-        st.warning("No images found for the selected parameters.")
-        return None
+        st.warning("No images found.")
+        return
 
     best_item = sorted(
         items,
@@ -140,20 +152,16 @@ def search_satellite_imagery(lat, lon, start_date, end_date, location_name):
             caption="Sentinel-2 thumbnail"
         )
 
-    return best_item
+# --------------------------------------------------
+# AUTO-RUN SEARCH (SAFE + RATE-LIMITED)
+# --------------------------------------------------
+if trigger_search:
+    with st.spinner("Searching Sentinel-2 imagery..."):
+        search_satellite_imagery()
 
 # --------------------------------------------------
-# Search form
+# Manual fallback button (recommended)
 # --------------------------------------------------
-if st.session_state.auto_search:
-    search_satellite_imagery(
-        st.session_state.lat,
-        st.session_state.lon,
-        start_date.isoformat(),
-        end_date.isoformat(),
-        location_name
-    )
-
-    # Reset trigger after running
-    st.session_state.auto_search = False
-
+if st.button("Run search manually"):
+    with st.spinner("Searching Sentinel-2 imagery..."):
+        search_satellite_imagery()
