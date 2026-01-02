@@ -121,11 +121,6 @@ lon = st.number_input(
 # --------------------------------------------------
 st.subheader("Search parameters")
 
-st.session_state.location_name = st.text_input(
-    "Location name",
-    value=st.session_state.location_name
-)
-
 st.session_state.start_date = st.date_input(
     "Start date",
     value=st.session_state.start_date
@@ -140,7 +135,7 @@ st.session_state.end_date = st.date_input(
 # Satellite search function
 # --------------------------------------------------
 def search_satellite_imagery():
-    st.subheader(f"Searching imagery for {st.session_state.location_name}")
+    st.subheader(f"Searching imagery for selected location")
 
     st.write(
         f"Coordinates: {st.session_state.lat}, {st.session_state.lon}"
