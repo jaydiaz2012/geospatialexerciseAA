@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 st.title("Sentinel-2 Satellite Imagery Finder")
-
+st.markdown("Click directly on a map, zoom in or out to verify location, and instantly retrieve the most recent satellite image available for the selected coordinates. Check my profile: https://jeremie-diaz-ai-republic-portfolio1.vercel.app/")
 def normalise_longitude(lon: float) -> float:
     """
     Normalise longitude to [-180, 180]
